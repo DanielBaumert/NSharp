@@ -888,24 +888,6 @@ internal class LexerLevel2
 
     private static bool IsAssignOperator(ReadOnlySpan<char> src, int i, out int end, out LexerTokenType type)
     {
-        if (IsMathmaticalAssign(src, i, out end, out type))
-        {
-            return true;
-        }
-        else if (src[i] is '=')
-        {
-            end = i + 1;
-            type = Assign;
-            return true;
-        }
-
-        end = 0;
-        type = Unknown;
-        return false;
-    }
-
-    private static bool IsMathmaticalAssign(ReadOnlySpan<char> src, int i, out int end, out LexerTokenType type)
-    {
         switch (src[i + 1])
         {
             case '=':
@@ -976,6 +958,13 @@ internal class LexerLevel2
                     return true;
                 }
                 break;
+        }
+
+        if (src[i] is '=')
+        {
+            end = i + 1;
+            type = Assign;
+            return true;
         }
 
         end = 0;
