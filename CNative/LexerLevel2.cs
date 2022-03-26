@@ -76,7 +76,11 @@ public enum LexerTokenType
     /// <summary> while </summary>
     While,
     /// <summary> #define </summary>
-    Define,
+    PragmaDefine,
+    /// <summary> #if </summary>
+    PragmaIf,
+    /// <summary> #endif </summary>
+    PragmaEndIf,
     /// <summary> [_A-Za-z][_A-Za-z0-9]* </summary>
     Identifier,
     /// <summary> \s </summary>
@@ -294,6 +298,7 @@ internal class LexerLevel2
 
     public static bool IsKeyword(ReadOnlySpan<char> src, int i, out int end, out LexerTokenType type)
     {
+        // IDEE: a = 0, b = 1 => array of func
         switch (src[i])
         {
             case 'a': // asm
@@ -328,7 +333,7 @@ internal class LexerLevel2
                 return IsVarOrVoid(src, i, out end, out type);
             case 'w': // while
                 return IsWhile(src, i, out end, out type);
-            case '#': // #define
+            case '#': // #define, #if, #IfEnd
                 return IsPragma(src, i, out end, out type);
             default:
                 end = 0;
@@ -763,14 +768,37 @@ internal class LexerLevel2
         type = Unknown;
         return false;
     }
+
     private static bool IsPragma(ReadOnlySpan<char> src, int i, out int end, out LexerTokenType type)
     {
+        // #define, #if, #endif
         i++;
-        if (src[i] is 'p' && src[i + 1] is 'r' && src[i + 2] is 'a' && src[i + 3] is 'g' && src[i + 4] is 'm' && src[i + 5] is 'a') // pragma
+        switch (src[i])
         {
-            end = i + 6;
-            type = Define;
-            return true;
+            case 'd': // #define
+                if(src[i + 1] is 'e' && src[i + 2] is 'f' && src[i + 3] is 'i' && src[i + 4] is 'n' && src[i + 5] is 'e')
+                {
+                    end = i + 6;
+                    type = PragmaDefine;
+                    return true;
+                }
+                break;
+            case 'e': // #endif
+                if (src[i + 1] is 'n' && src[i + 2] is 'd' && src[i + 3] is 'i' && src[i + 4] is 'f')
+                {
+                    end = i + 6;
+                    type = PragmaEndIf;
+                    return true;
+                }
+                break;
+            case 'i': // #if
+                if(src[i + 1] is 'f')
+                {
+                    end = i + 6;
+                    type = PragmaDefine;
+                    return true;
+                }
+                break;
         }
 
         end = 0;
