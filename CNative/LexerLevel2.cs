@@ -883,13 +883,12 @@ internal class LexerLevel2
 
         // if all false then end became 0 and type unknown
         return IsAssignOperator(src, i, out end, out type)
-            || IsOperator(src, i, out end, out type)
-            || IsCompareOperator(src, i, out end, out type);
+            || IsOperator(src, i, out end, out type);
     }
 
     private static bool IsAssignOperator(ReadOnlySpan<char> src, int i, out int end, out LexerTokenType type)
     {
-        if (IsBinaryAssign(src, i, out end, out type) || IsMathmaticalAssign(src, i, out end, out type))
+        if (IsMathmaticalAssign(src, i, out end, out type))
         {
             return true;
         }
@@ -904,35 +903,7 @@ internal class LexerLevel2
         type = Unknown;
         return false;
     }
-    private static bool IsBinaryAssign(ReadOnlySpan<char> src, int i, out int end, out LexerTokenType type)
-    {
-        if (src[i + 1] is '=')
-        {
-            switch (src[i])
-            {
-                case '&':
-                    end = i + 2;
-                    type = AndEquals;
-                    return true;
-                case '|':
-                    end = i + 2;
-                    type = OrEquals;
-                    return true;
-                case '^':
-                    end = i + 2;
-                    type = XorEquals;
-                    return true;
-                case '~':
-                    end = i + 2;
-                    type = InvertEquals;
-                    return true;
-            }
-        }
 
-        end = 0;
-        type = Unknown;
-        return false;
-    }
     private static bool IsMathmaticalAssign(ReadOnlySpan<char> src, int i, out int end, out LexerTokenType type)
     {
         switch (src[i + 1])
@@ -940,6 +911,24 @@ internal class LexerLevel2
             case '=':
                 switch (src[i])
                 {
+                    /// binary
+                    case '&':
+                        end = i + 2;
+                        type = AndEquals;
+                        return true;
+                    case '|':
+                        end = i + 2;
+                        type = OrEquals;
+                        return true;
+                    case '^':
+                        end = i + 2;
+                        type = XorEquals;
+                        return true;
+                    case '~':
+                        end = i + 2;
+                        type = InvertEquals;
+                        return true;
+                    /// mathmatical
                     case '+':
                         end = i + 2;
                         type = PlusEquals;
@@ -959,6 +948,23 @@ internal class LexerLevel2
                     case '%':
                         end = i + 2;
                         type = ModuloEquals;
+                        return true;
+                    /// compare
+                    case '<':
+                        end = i + 2;
+                        type = LessThen;
+                        return true;
+                    case '>':
+                        end = i + 2;
+                        type = GreaterThen;
+                        return true;
+                    case '=':
+                        end = i + 2;
+                        type = EqualsThen;
+                        return true;
+                    case '!':
+                        end = i + 2;
+                        type = NotEqualsThen;
                         return true;
                 }
                 break;
@@ -1055,37 +1061,6 @@ internal class LexerLevel2
                 end = i + 1;
                 type = Modulo;
                 return true;
-        }
-
-        end = 0;
-        type = Unknown;
-        return false;
-    }
-
-    private static bool IsCompareOperator(ReadOnlySpan<char> src, int i, out int end, out LexerTokenType type)
-    {
-
-        if (src[i + 1] is '=')
-        {
-            switch (src[i])
-            {
-                case '<':
-                    end = i + 2;
-                    type = LessThen;
-                    return true;
-                case '>':
-                    end = i + 2;
-                    type = GreaterThen;
-                    return true;
-                case '=':
-                    end = i + 2;
-                    type = EqualsThen;
-                    return true;
-                case '!':
-                    end = i + 2;
-                    type = NotEqualsThen;
-                    return true;
-            }
         }
 
         end = 0;
