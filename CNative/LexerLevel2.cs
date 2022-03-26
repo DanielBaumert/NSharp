@@ -944,7 +944,6 @@ internal class LexerLevel2
         return IsAssignOperator(src, i, out end, out type)
             || IsOperator(src, i, out end, out type);
     }
-
     private static bool IsAssignOperator(ReadOnlySpan<char> src, int i, out int end, out LexerTokenType type)
     {
         switch (src[i + 1])
@@ -1030,17 +1029,11 @@ internal class LexerLevel2
         type = Unknown;
         return false;
     }
-
     private static bool IsOperator(ReadOnlySpan<char> src, int i, out int end, out LexerTokenType type)
-    {
-        return IsBinaryOperator(src, i, out end, out type)
-            || IsMathmaticalOperatorOrComment(src, i, out end, out type);
-
-    }
-    private static bool IsBinaryOperator(ReadOnlySpan<char> src, int i, out int end, out LexerTokenType type)
     {
         switch (src[i])
         {
+            // binary
             case '~':
                 end = i + 1;
                 type = Invert;
@@ -1057,16 +1050,7 @@ internal class LexerLevel2
                 end = i + 1;
                 type = And;
                 return true;
-        }
-
-        end = 0;
-        type = Unknown;
-        return false;
-    }
-    private static bool IsMathmaticalOperatorOrComment(ReadOnlySpan<char> src, int i, out int end, out LexerTokenType type)
-    {
-        switch (src[i])
-        {
+            // math
             case '+':
                 end = i + 1;
                 type = Plus;
