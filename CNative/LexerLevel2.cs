@@ -43,6 +43,8 @@ public enum LexerTokenType
     If,
     /// <summary> long </summary>
     Long,
+    /// <summary> namespace </summary>
+    Namespace,
     /// <summary> null </summary>
     Null,
     /// <summary> public </summary>
@@ -329,8 +331,8 @@ internal class LexerLevel2
                 return IsInterfaceOrIntOrIf(src, i, out end, out type);
             case 'l': // long
                 return IsLong(src, i, out end, out type);
-            case 'n': // null
-                return IsNull(src, i, out end, out type);
+            case 'n': // namespace null, 
+                return IsNamespaceOrNull(src, i, out end, out type);
             case 'p': // public, private 
                 return IsPublicOrPrivate(src, i, out end, out type);
             case 'r': // return
@@ -570,16 +572,30 @@ internal class LexerLevel2
         type = Unknown;
         return false;
     }
-    private static bool IsNull(ReadOnlySpan<char> src, int i, out int end, out LexerTokenType type)
+    private static bool IsNamespaceOrNull(ReadOnlySpan<char> src, int i, out int end, out LexerTokenType type)
     {
         i++;
-        if (src[i] is 'u' && src[i + 1] is 'l' && src[i + 2] is 'l') // null
+        switch (src[i])
         {
-            end = i + 3;
-            type = Null;
-            return true;
+            case 'a': // namespace
+                if(src[i + 1] is 'm' && src[i + 2] is 'e'
+                    && src[i + 3] is 's' && src[i + 4] is 'p' && src[i + 5] is 'a' && src[i + 6] is 'c' && src[i + 7] is 'e')
+                {
+                    end = i + 8;
+                    type = Namespace;
+                    return true;
+                }
+                break;
+            case 'u': // null
+                if(src[i + 1] is 'l' && src[i + 2] is 'l') // null
+                {
+                    end = i + 3;
+                    type = Null;
+                    return true;
+                }
+                break;
         }
-
+        
         end = 0;
         type = Unknown;
         return false;
