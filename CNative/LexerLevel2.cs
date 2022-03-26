@@ -8,6 +8,8 @@ public enum LexerTokenType
 {
     // keyword
     /// <summary> byte </summary>
+    ASM,
+    /// <summary> byte </summary>
     Byte,
     /// <summary> bool </summary>
     Bool,
@@ -294,6 +296,8 @@ internal class LexerLevel2
     {
         switch (src[i])
         {
+            case 'a': // asm
+                return IsAsm(src, i, out end, out type);
             case 'b': // byte, bool
                 return IsByteOrBool(src, i, out end, out type);
             case 'c': // class, char
@@ -331,6 +335,21 @@ internal class LexerLevel2
                 type = Unknown;
                 return false;
         }
+    }
+
+    private static bool IsAsm(ReadOnlySpan<char> src, int i, out int end, out LexerTokenType type)
+    {
+        i++;
+        if(src[i] is 's' && src[i + 1] is 'm')
+        {
+            end = i + 2;
+            type = ASM;
+            return true;
+        }
+
+        end = 0;
+        type = Unknown;
+        return false;
     }
     private static bool IsByteOrBool(ReadOnlySpan<char> src, int i, out int end, out LexerTokenType type)
     {
