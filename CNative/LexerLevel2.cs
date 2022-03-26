@@ -261,7 +261,7 @@ internal class LexerLevel2
                         if (IsSymbol(src, node.Start, out end, out type))
                         {
                             // skip next symbol
-                            int delta = end - node.End;
+                            int delta = end - node.Start;
                             while (delta > 0)
                             {
                                 GetNextLvl1Node();
