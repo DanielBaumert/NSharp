@@ -15,6 +15,8 @@ public enum LexerTokenType
     Class,
     /// <summary> char </summary>
     Char,
+    /// <summary> const </summary>
+    Const,
     /// <summary> do </summary>
     Do,
     /// <summary> double </summary>
@@ -295,7 +297,7 @@ internal class LexerLevel2
             case 'b': // byte, bool
                 return IsByteOrBool(src, i, out end, out type);
             case 'c': // class, char
-                return IsClassOrChar(src, i, out end, out type);
+                return IsClassOrCharOrConst(src, i, out end, out type);
             case 'd': //  do...while, double
                 return IsDoOrDouble(src, i, out end, out type);
             case 'e': // enum
@@ -357,7 +359,7 @@ internal class LexerLevel2
         type = Unknown;
         return false;
     }
-    private static bool IsClassOrChar(ReadOnlySpan<char> src, int i, out int end, out LexerTokenType type)
+    private static bool IsClassOrCharOrConst(ReadOnlySpan<char> src, int i, out int end, out LexerTokenType type)
     {
         i++;
         switch (src[i])
@@ -375,6 +377,14 @@ internal class LexerLevel2
                 {
                     end = i + 3;
                     type = Char;
+                    return true;
+                }
+                break;
+            case 'o': // Const
+                if (src[i + 1] is 'n' && src[i + 2] is 's' && src[i + 3] is 't')
+                {
+                    end = i + 4;
+                    type = Const;
                     return true;
                 }
                 break;
