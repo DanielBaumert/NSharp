@@ -400,19 +400,19 @@ internal class LexerLevel2
         i++;
         switch (src[i])
         {
-            case 'l': // Class
-                if (src[i + 1] is 'a' && src[i + 2] is 's' && src[i + 3] is 's')
-                {
-                    end = i + 4;
-                    type = Class;
-                    return true;
-                }
-                break;
             case 'h': // Char
                 if (src[i + 1] is 'a' && src[i + 2] is 'r')
                 {
                     end = i + 3;
                     type = Char;
+                    return true;
+                }
+                break;
+            case 'l': // Class
+                if (src[i + 1] is 'a' && src[i + 2] is 's' && src[i + 3] is 's')
+                {
+                    end = i + 4;
+                    type = Class;
                     return true;
                 }
                 break;
