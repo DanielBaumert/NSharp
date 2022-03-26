@@ -260,14 +260,18 @@ internal class LexerLevel2
                     case LexerNodeType.Symbol:
                         if (IsSymbol(src, node.Start, out end, out type))
                         {
-                            // skip next symbol
-                            int delta = end - node.Start;
-                            while (delta > 0)
+                            if(end > node.End)
                             {
-                                GetNextLvl1Node();
-                                delta--;
+                                // skip next symbol
+                                int delta = end - node.Start;
+                                while (delta > 0)
+                                {
+                                    GetNextLvl1Node();
+                                    delta--;
+                                }
+                                // end skip
                             }
-                            // end skip
+
                             AddLevel2Token(node.Start, end, type);
                         }
                         else
