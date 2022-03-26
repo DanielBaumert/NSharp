@@ -22,6 +22,8 @@ public enum LexerTokenType
     Do,
     /// <summary> double </summary>
     Double,
+    /// <summary> else </summary>
+    Else,
     /// <summary> enum </summary>
     Enum,
     /// <summary> false </summary>
@@ -232,7 +234,7 @@ internal class LexerLevel2
         LexerTokenType type;
 
         ReadOnlySpan<char> src = _src.ToCharArray();
-            
+
         while (_level1Queue.Count > 0)
         {
             // TODO: out params and if's
@@ -265,7 +267,7 @@ internal class LexerLevel2
                 case LexerNodeType.Symbol:
                     if (IsSymbol(src, node.Start, out end, out type))
                     {
-                        if(end > node.End)
+                        if (end > node.End)
                         {
                             // skip next symbol
                             int delta = end - node.Start;
@@ -313,8 +315,8 @@ internal class LexerLevel2
                 return IsClassOrCharOrConst(src, i, out end, out type);
             case 'd': //  do...while, double
                 return IsDoOrDouble(src, i, out end, out type);
-            case 'e': // enum
-                return IsEnum(src, i, out end, out type);
+            case 'e': // else, enum
+                return IsElseOrEnum(src, i, out end, out type);
             case 'f': // false, for, foreach, float
                 return IsFalseOrForOrForeachOrFloat(src, i, out end, out type);
             case 'g': // get
@@ -351,7 +353,7 @@ internal class LexerLevel2
     private static bool IsAsm(ReadOnlySpan<char> src, int i, out int end, out LexerTokenType type)
     {
         i++;
-        if(src[i] is 's' && src[i + 1] is 'm')
+        if (src[i] is 's' && src[i + 1] is 'm')
         {
             end = i + 2;
             type = ASM;
@@ -429,7 +431,7 @@ internal class LexerLevel2
         i++;
         if (src[i] is 'o') // do
         {
-            if(src[i + 1] is 'u' && src[i + 2] is 'b' && src[i + 3] is 'l' && src[i + 4] is 'e')
+            if (src[i + 1] is 'u' && src[i + 2] is 'b' && src[i + 3] is 'l' && src[i + 4] is 'e')
             {
                 end = i + 5;
                 type = Double;
@@ -444,14 +446,27 @@ internal class LexerLevel2
         type = Unknown;
         return false;
     }
-    private static bool IsEnum(ReadOnlySpan<char> src, int i, out int end, out LexerTokenType type)
+    private static bool IsElseOrEnum(ReadOnlySpan<char> src, int i, out int end, out LexerTokenType type)
     {
         i++;
-        if (src[i] is 'n' && src[i + 1] is 'u' && src[i + 2] is 'm') // enum
+        switch (src[i])
         {
-            end = i + 3;
-            type = Enum;
-            return true;
+            case 'l':
+                if (src[i + 1] is 's' && src[i + 2] is 'e') // else
+                {
+                    end = i + 3;
+                    type = Else;
+                    return true;
+                }
+                break;
+            case 'n':
+                if (src[i + 1] is 'u' && src[i + 2] is 'm') // enum
+                {
+                    end = i + 3;
+                    type = Enum;
+                    return true;
+                }
+                break;
         }
 
         end = 0;
@@ -488,7 +503,7 @@ internal class LexerLevel2
                 }
                 break;
             case 'l': // float
-                if(src[i + 1] is 'o' && src[i + 2] is 'a' && src[i + 3] is 't')
+                if (src[i + 1] is 'o' && src[i + 2] is 'a' && src[i + 3] is 't')
                 {
                     end = i + 4;
                     type = Float;
@@ -553,7 +568,7 @@ internal class LexerLevel2
     private static bool IsLong(ReadOnlySpan<char> src, int i, out int end, out LexerTokenType type)
     {
         i++;
-        if(src[i] is 'o' && src[i + 1] is 'n' && src[i + 2] is 'g')
+        if (src[i] is 'o' && src[i + 1] is 'n' && src[i + 2] is 'g')
         {
             end = i + 3;
             type = Long;
@@ -570,7 +585,7 @@ internal class LexerLevel2
         switch (src[i])
         {
             case 'a': // namespace
-                if(src[i + 1] is 'm' && src[i + 2] is 'e'
+                if (src[i + 1] is 'm' && src[i + 2] is 'e'
                     && src[i + 3] is 's' && src[i + 4] is 'p' && src[i + 5] is 'a' && src[i + 6] is 'c' && src[i + 7] is 'e')
                 {
                     end = i + 8;
@@ -579,7 +594,7 @@ internal class LexerLevel2
                 }
                 break;
             case 'u': // null
-                if(src[i + 1] is 'l' && src[i + 2] is 'l') // null
+                if (src[i + 1] is 'l' && src[i + 2] is 'l') // null
                 {
                     end = i + 3;
                     type = Null;
@@ -587,7 +602,7 @@ internal class LexerLevel2
                 }
                 break;
         }
-        
+
         end = 0;
         type = Unknown;
         return false;
@@ -655,7 +670,7 @@ internal class LexerLevel2
                 }
                 break;
             case 'h': // short
-                if(src[i + 1] is 'o' && src[i + 2] is 'r' && src[i + 3] is 't')
+                if (src[i + 1] is 'o' && src[i + 2] is 'r' && src[i + 3] is 't')
                 {
                     end = i + 4;
                     type = Short;
@@ -696,7 +711,7 @@ internal class LexerLevel2
                         break;
                 }
                 break;
-            
+
         }
 
         end = 0;
@@ -717,7 +732,7 @@ internal class LexerLevel2
                 }
                 break;
             case 'r': // true
-                if (src[i + 1] is 'u' && src[i + 2] is 'e') 
+                if (src[i + 1] is 'u' && src[i + 2] is 'e')
                 {
                     end = i + 3;
                     type = True;
@@ -827,7 +842,7 @@ internal class LexerLevel2
         switch (src[i])
         {
             case 'd': // #define
-                if(src[i + 1] is 'e' && src[i + 2] is 'f' && src[i + 3] is 'i' && src[i + 4] is 'n' && src[i + 5] is 'e')
+                if (src[i + 1] is 'e' && src[i + 2] is 'f' && src[i + 3] is 'i' && src[i + 4] is 'n' && src[i + 5] is 'e')
                 {
                     end = i + 6;
                     type = PragmaDefine;
@@ -843,7 +858,7 @@ internal class LexerLevel2
                 }
                 break;
             case 'i': // #if
-                if(src[i + 1] is 'f')
+                if (src[i + 1] is 'f')
                 {
                     end = i + 6;
                     type = PragmaDefine;
