@@ -808,31 +808,17 @@ internal class LexerLevel2
 
     private static bool IsSpace(ReadOnlySpan<char> src, int i, out int end, out LexerTokenType type)
     {
-        return IsSpaceOrTab(src, i, out end, out type) || IsNewline(src, i, out end, out type);
-    }
-    private static bool IsSpaceOrTab(ReadOnlySpan<char> src, int i, out int end, out LexerTokenType type)
-    {
         switch (src[i])
         {
-            case ' ':
+            case ' ': // space
                 end = i + 1;
                 type = Space;
                 return true;
-            case '\t':
+            case '\t': // tab
                 end = i + 1;
                 type = Tab;
                 return true;
-        }
-
-        end = 0;
-        type = Unknown;
-        return false;
-    }
-    private static bool IsNewline(ReadOnlySpan<char> src, int i, out int end, out LexerTokenType type)
-    {
-        switch (src[i])
-        {
-            case '\r':
+            case '\r': // new line
                 if (src[i + 1] is '\n')
                 {
                     end = i + 2;
@@ -840,7 +826,7 @@ internal class LexerLevel2
                     return true;
                 }
                 break;
-            case '\n':
+            case '\n': // new line
                 end = i + 1;
                 type = Newline;
                 return true;
@@ -850,6 +836,8 @@ internal class LexerLevel2
         type = Unknown;
         return false;
     }
+
+
 
     private static bool IsSymbol(ReadOnlySpan<char> src, int i, out int end, out LexerTokenType type)
     {
