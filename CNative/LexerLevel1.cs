@@ -29,48 +29,39 @@ internal struct LexerNode
 internal class LexerLevel1
 {
     private string _src;
-    private ConcurrentQueue<LexerNode> _queue;
+    private Queue<LexerNode> _queue;
 
     public LexerLevel1(
         string src,
-        ref ConcurrentQueue<LexerNode> level1LexerQueue)
+        ref Queue<LexerNode> level1LexerQueue)
     {
         _src = src;
         _queue = level1LexerQueue;
     }
 
-    public async Task AnalyseAsync(CancellationTokenSource cts, CancellationToken ct)
+    public void Analyse()
     {
-        await Task.Run(() =>
+        ReadOnlySpan<char> sourceCode = _src.ToCharArray();
+        int i = 0;
+
+        while (i < sourceCode.Length)
         {
-            ReadOnlySpan<char> sourceCode = _src.ToCharArray();
-            int i = 0;
+            Unsafe.SkipInit(out LexerNode node);
 
-            while (!cts.IsCancellationRequested && i < sourceCode.Length)
+            if (IsSpace(sourceCode, in i, ref node) 
+                || IsDigit(_src, in i, ref node)
+                || IsWord(_src, in i, ref node))
             {
-                Unsafe.SkipInit(out LexerNode node);
-
-                if (IsSpace(sourceCode, in i, ref node) 
-                    || IsDigit(_src, in i, ref node)
-                    || IsWord(_src, in i, ref node))
-                {
-                    _queue.Enqueue(node);
-                }
-                else
-                {
-                    node = new LexerNode(Symbol, i, i + 1);
-                    _queue.Enqueue(node);
-                }
-
-                i = node.End;
+                _queue.Enqueue(node);
+            }
+            else
+            {
+                node = new LexerNode(Symbol, i, i + 1);
+                _queue.Enqueue(node);
             }
 
-            if (!ct.IsCancellationRequested)
-            {
-                cts.Cancel();
-            }
-
-        }, ct);
+            i = node.End;
+        }
     }
     
     private static bool IsSpace(ReadOnlySpan<char> src, in int i, ref LexerNode node) {

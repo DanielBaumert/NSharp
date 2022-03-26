@@ -212,13 +212,13 @@ internal class LexerLevel2
 {
     private string _src;
 
-    private ConcurrentQueue<LexerNode> _level1Queue;
-    private ConcurrentQueue<LexerToken> _level2Queue;
+    private Queue<LexerNode> _level1Queue;
+    private Queue<LexerToken> _level2Queue;
 
     public LexerLevel2(
         string src,
-        ref ConcurrentQueue<LexerNode> level1LexerQueue,
-        ref ConcurrentQueue<LexerToken> level2LexerQueue)
+        ref Queue<LexerNode> level1LexerQueue,
+        ref Queue<LexerToken> level2LexerQueue)
     {
         _src = src;
 
@@ -227,80 +227,73 @@ internal class LexerLevel2
     }
 
 
-    public async Task AnalyseAsync(CancellationToken ct = default)
+    public void Analyse()
     {
-        await Task.Run(() =>
-        {
-            int end;
-            LexerTokenType type;
+        int end;
+        LexerTokenType type;
 
-            ReadOnlySpan<char> src = _src.ToCharArray();
+        ReadOnlySpan<char> src = _src.ToCharArray();
             
-            while (!ct.IsCancellationRequested || _level1Queue.Count > 0)
+        while (_level1Queue.Count > 0)
+        {
+            // TODO: out params and if's
+            LexerNode node = GetNextLvl1Node();
+            switch (node.Type)
             {
-                // TODO: out params and if's
-                LexerNode node = GetNextLvl1Node();
-                switch (node.Type)
-                {
-                    case LexerNodeType.Space:
-                        if (IsSpace(src, node.Start, out end, out type))
+                case LexerNodeType.Space:
+                    if (IsSpace(src, node.Start, out end, out type))
+                    {
+                        AddLevel2Token(node.Start, node.End, type);
+                    }
+                    else
+                    {
+                        AddLevel2Token(node.Start, node.End, Unknown);
+                    }
+                    break;
+                case LexerNodeType.Word:
+                    if (IsKeyword(src, node.Start, out end, out type) && node.End == end)
+                    {
+                        AddLevel2Token(node.Start, node.End, type);
+                    }
+                    else
+                    {
+                        AddLevel2Token(node.Start, node.End, Unknown);
+                    }
+                    break;
+                case LexerNodeType.Number:
+                    AddLevel2Token(node.Start, node.End, Numbers);
+                    break;
+                case LexerNodeType.Symbol:
+                    if (IsSymbol(src, node.Start, out end, out type))
+                    {
+                        if(end > node.End)
                         {
-                            AddLevel2Token(node.Start, node.End, type);
-                        }
-                        else
-                        {
-                            AddLevel2Token(node.Start, node.End, Unknown);
-                        }
-                        break;
-                    case LexerNodeType.Word:
-                        if (IsKeyword(src, node.Start, out end, out type) && node.End == end)
-                        {
-                            AddLevel2Token(node.Start, node.End, type);
-                        }
-                        else
-                        {
-                            AddLevel2Token(node.Start, node.End, Unknown);
-                        }
-                        break;
-                    case LexerNodeType.Number:
-                        AddLevel2Token(node.Start, node.End, Numbers);
-                        break;
-                    case LexerNodeType.Symbol:
-                        if (IsSymbol(src, node.Start, out end, out type))
-                        {
-                            if(end > node.End)
+                            // skip next symbol
+                            int delta = end - node.Start;
+                            while (delta > 0)
                             {
-                                // skip next symbol
-                                int delta = end - node.Start;
-                                while (delta > 0)
-                                {
-                                    GetNextLvl1Node();
-                                    delta--;
-                                }
-                                // end skip
+                                GetNextLvl1Node();
+                                delta--;
                             }
+                            // end skip
+                        }
 
-                            AddLevel2Token(node.Start, end, type);
-                        }
-                        else
-                        {
-                            AddLevel2Token(node.Start, node.End, Unknown);
-                        }
-                        break;
-                    default:
-                        throw new NotSupportedException(node.Type.ToString());
-                }
+                        AddLevel2Token(node.Start, end, type);
+                    }
+                    else
+                    {
+                        AddLevel2Token(node.Start, node.End, Unknown);
+                    }
+                    break;
+                default:
+                    throw new NotSupportedException(node.Type.ToString());
             }
-        }, ct);
+        }
     }
 
     private LexerNode GetNextLvl1Node()
     {
-        // TODO: 
-        LexerNode node;
-        while(!_level1Queue.TryDequeue(out node))
-        { }
-        return node;
+        return _level1Queue.Dequeue();
     }
 
     private void AddLevel2Token(int start, int end, LexerTokenType type)

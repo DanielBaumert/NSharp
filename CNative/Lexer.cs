@@ -5,8 +5,8 @@ namespace CNative;
 internal class Lexer
 {
     private string _src;
-    public ConcurrentQueue<LexerNode>  level1LexerQueue;
-    public ConcurrentQueue<LexerToken> level2LexerQueue;
+    public Queue<LexerNode>  level1LexerQueue;
+    public Queue<LexerToken> level2LexerQueue;
     public Lexer(string src)
     {
         _src = src;
@@ -14,19 +14,14 @@ internal class Lexer
 
     public async Task AnalyseAsync()
     {
-        level1LexerQueue = new ConcurrentQueue<LexerNode>();
-        level2LexerQueue = new ConcurrentQueue<LexerToken>();
+        level1LexerQueue = new Queue<LexerNode>();
+        level2LexerQueue = new Queue<LexerToken>();
 
         LexerLevel1 level1 = new LexerLevel1(_src, ref level1LexerQueue);
         LexerLevel2 level2 = new LexerLevel2(_src, ref level1LexerQueue, ref level2LexerQueue);
 
-        CancellationTokenSource cts = new CancellationTokenSource();
-
-        Task level1Task = level1.AnalyseAsync(cts, cts.Token);
-        Task level2Task = level2.AnalyseAsync(cts.Token);
-
-        await level1Task;
-        await level2Task;
+        level1.Analyse();
+        level2.Analyse();
     }
 
     private static bool IsAlphabetic(ReadOnlySpan<char> src, int i, out int end)
