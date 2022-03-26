@@ -1,6 +1,5 @@
 ﻿namespace CNative;
 
-using System.Collections.Concurrent;
 using System.Runtime.CompilerServices;
 using static LexerNodeType;
 
