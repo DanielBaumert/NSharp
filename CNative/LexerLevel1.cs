@@ -11,7 +11,7 @@ internal enum LexerNodeType
     Symbol
 }
 
-internal struct LexerNode
+internal readonly struct LexerNode
 {
     public readonly LexerNodeType Type;
     public readonly int Start;

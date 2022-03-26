@@ -1,6 +1,5 @@
 ﻿namespace CNative;
 
-using System.Collections.Concurrent;
 using System.Diagnostics;
 using static LexerTokenType;
 
@@ -193,7 +192,7 @@ public enum LexerTokenType
 }
 
 [DebuggerDisplay("Type = {Type}")]
-internal struct LexerToken
+internal readonly struct LexerToken
 {
     public readonly LexerTokenType Type;
     public readonly int Start;
