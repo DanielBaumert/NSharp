@@ -57,6 +57,8 @@ public enum LexerTokenType
     Struct,
     /// <summary> sbyte </summary>
     SByte,
+    /// <summary> short </summary>
+    Short,
     /// <summary> stackalloc </summary>
     Stackalloc,
     /// <summary> static </summary>
@@ -333,8 +335,8 @@ internal class LexerLevel2
                 return IsPublicOrPrivate(src, i, out end, out type);
             case 'r': // return
                 return IsReturn(src, i, out end, out type);
-            case 's': // struct, sbyte, stackalloc, static
-                return IsSetOrStructOrStackallocOrStaticOrSByte(src, i, out end, out type);
+            case 's': // struct, sbyte, short, stackalloc, static
+                return IsSetOrStructOrShortOrStackallocOrStaticOrSByte(src, i, out end, out type);
             case 't': // true, this
                 return IsTrueOrThis(src, i, out end, out type);
             case 'u': // ushort, uint, ulong, using [union]
@@ -623,16 +625,32 @@ internal class LexerLevel2
         type = Unknown;
         return false;
     }
-    private static bool IsSetOrStructOrStackallocOrStaticOrSByte(ReadOnlySpan<char> src, int i, out int end, out LexerTokenType type)
+    private static bool IsSetOrStructOrShortOrStackallocOrStaticOrSByte(ReadOnlySpan<char> src, int i, out int end, out LexerTokenType type)
     {
         i++;
         switch (src[i])
         {
+            case 'b': // Sbyte
+                if (src[i + 1] is 'y' && src[i + 2] is 't' && src[i + 3] is 'e') // Sbyte
+                {
+                    end = i + 4;
+                    type = SByte;
+                    return true;
+                }
+                break;
             case 'e': // set
                 if (src[i + 1] is 't')
                 {
                     end = i + 2;
                     type = Set;
+                    return true;
+                }
+                break;
+            case 'h': // short
+                if(src[i + 1] is 'o' && src[i + 2] is 'r' && src[i + 3] is 't')
+                {
+                    end = i + 4;
+                    type = Short;
                     return true;
                 }
                 break;
@@ -670,14 +688,7 @@ internal class LexerLevel2
                         break;
                 }
                 break;
-            case 'b': // Sbyte
-                if (src[i + 1] is 'y' && src[i + 2] is 't' && src[i + 3] is 'e') // Sbyte
-                {
-                    end = i + 4;
-                    type = SByte;
-                    return true;
-                }
-                break;
+            
         }
 
         end = 0;
