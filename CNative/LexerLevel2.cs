@@ -7,7 +7,7 @@ using static LexerTokenType;
 public enum LexerTokenType
 {
     // keyword
-    /// <summary> byte </summary>
+    /// <summary> asm </summary>
     ASM,
     /// <summary> byte </summary>
     Byte,
