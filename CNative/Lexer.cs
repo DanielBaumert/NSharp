@@ -12,7 +12,7 @@ internal class Lexer
         _src = src;
     }
 
-    public async Task AnalyseAsync()
+    public void Analyse()
     {
         level1LexerQueue = new Queue<LexerNode>();
         level2LexerQueue = new Queue<LexerToken>();
