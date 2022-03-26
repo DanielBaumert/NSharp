@@ -37,6 +37,8 @@ public enum LexerTokenType
     Get,
     /// <summary> interface </summary>
     Interface,
+    /// <summary> int </summary>
+    Int,
     /// <summary> if </summary>
     If,
     /// <summary> null </summary>
@@ -319,8 +321,8 @@ internal class LexerLevel2
                 return IsFalseOrForOrForeachOrFloat(src, i, out end, out type);
             case 'g': // get
                 return IsGet(src, i, out end, out type);
-            case 'i': // interface, if
-                return IsInterfaceOrIf(src, i, out end, out type);
+            case 'i': // interface, int, if
+                return IsInterfaceOrIntOrIf(src, i, out end, out type);
             case 'n': // null
                 return IsNull(src, i, out end, out type);
             case 'p': // public, private 
@@ -513,16 +515,24 @@ internal class LexerLevel2
         type = Unknown;
         return false;
     }
-    private static bool IsInterfaceOrIf(ReadOnlySpan<char> src, int i, out int end, out LexerTokenType type)
+    private static bool IsInterfaceOrIntOrIf(ReadOnlySpan<char> src, int i, out int end, out LexerTokenType type)
     {
         i++;
         switch (src[i])
         {
             case 'n': // interface
-                if (src[i + 1] is 't' && src[i + 2] is 'e' && src[i + 3] is 'r' && src[i + 4] is 'f' && src[i + 5] is 'a' && src[i + 6] is 'c' && src[i + 7] is 'e')
+                if (src[i + 1] is 't')
                 {
-                    end = i + 8;
-                    type = Interface;
+                    if (src[i + 2] is 'e' && src[i + 3] is 'r' && src[i + 4] is 'f' && src[i + 5] is 'a' && src[i + 6] is 'c' && src[i + 7] is 'e')
+                    {
+                        end = i + 8;
+                        type = Interface;
+                        return true;
+                    }
+
+                    // int
+                    end = i + 2;
+                    type = Int;
                     return true;
                 }
                 break;
