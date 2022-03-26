@@ -41,6 +41,8 @@ public enum LexerTokenType
     Int,
     /// <summary> if </summary>
     If,
+    /// <summary> long </summary>
+    Long,
     /// <summary> null </summary>
     Null,
     /// <summary> public </summary>
@@ -323,6 +325,8 @@ internal class LexerLevel2
                 return IsGet(src, i, out end, out type);
             case 'i': // interface, int, if
                 return IsInterfaceOrIntOrIf(src, i, out end, out type);
+            case 'l': // long
+                return IsLong(src, i, out end, out type);
             case 'n': // null
                 return IsNull(src, i, out end, out type);
             case 'p': // public, private 
@@ -544,6 +548,20 @@ internal class LexerLevel2
                     return true;
                 }
                 break;
+        }
+
+        end = 0;
+        type = Unknown;
+        return false;
+    }
+    private static bool IsLong(ReadOnlySpan<char> src, int i, out int end, out LexerTokenType type)
+    {
+        i++;
+        if(src[i] is 'o' && src[i + 1] is 'n' && src[i + 2] is 'g')
+        {
+            end = i + 3;
+            type = Long;
+            return true;
         }
 
         end = 0;
