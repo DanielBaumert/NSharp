@@ -1,271 +1,52 @@
-﻿namespace CNative;
+﻿using System.Runtime.CompilerServices;
 
-using System.Diagnostics;
+namespace NSharp.Lex.Level;
 using static LexerTokenType;
 
-public enum LexerTokenType
+internal static class LexerLevel2
 {
-    // keyword
-    /// <summary> asm </summary>
-    ASM,
-    /// <summary> byte </summary>
-    Byte,
-    /// <summary> bool </summary>
-    Bool,
-    /// <summary> class </summary>
-    Class,
-    /// <summary> char </summary>
-    Char,
-    /// <summary> const </summary>
-    Const,
-    /// <summary> do </summary>
-    Do,
-    /// <summary> double </summary>
-    Double,
-    /// <summary> else </summary>
-    Else,
-    /// <summary> enum </summary>
-    Enum,
-    /// <summary> false </summary>
-    False,
-    /// <summary> for </summary>
-    For,
-    /// <summary> foreach </summary>
-    Foreach,
-    /// <summary> float </summary>
-    Float,
-    /// <summary> get </summary>
-    Get,
-    /// <summary> interface </summary>
-    Interface,
-    /// <summary> int </summary>
-    Int,
-    /// <summary> if </summary>
-    If,
-    /// <summary> long </summary>
-    Long,
-    /// <summary> namespace </summary>
-    Namespace,
-    /// <summary> null </summary>
-    Null,
-    /// <summary> public </summary>
-    Public,
-    /// <summary> private </summary>
-    Private,
-    /// <summary> return </summary>
-    Return,
-    /// <summary> set </summary>
-    Set,
-    /// <summary> struct </summary>
-    Struct,
-    /// <summary> sbyte </summary>
-    SByte,
-    /// <summary> short </summary>
-    Short,
-    /// <summary> stackalloc </summary>
-    Stackalloc,
-    /// <summary> static </summary>
-    Static,
-    /// <summary> true </summary>
-    True,
-    /// <summary> this </summary>
-    This,
-    /// <summary> ushort </summary>
-    UShort,
-    /// <summary> uint </summary>
-    UInt,
-    /// <summary> ulong </summary>
-    Ulong,
-    /// <summary> using </summary>
-    Using,
-    /// <summary> var </summary>
-    Var,
-    /// <summary> void </summary>
-    Void,
-    /// <summary> while </summary>
-    While,
-    /// <summary> #define </summary>
-    PragmaDefine,
-    /// <summary> #if </summary>
-    PragmaIf,
-    /// <summary> #endif </summary>
-    PragmaEndIf,
-    /// <summary> [_A-Za-z][_A-Za-z0-9]* </summary>
-    Identifier,
-    /// <summary> \s </summary>
-    Space,
-    /// <summary> \t </summary>
-    Tab,
-    /// <summary> \n or \r\n </summary>
-    Newline,
-    // IsCompareOperator
-    /// <summary> &lt;= </summary>
-    LessThen,
-    /// <summary> >= </summary>
-    GreaterThen,
-    /// <summary> == </summary>
-    EqualsThen,
-    /// <summary> != </summary>
-    NotEqualsThen,
-    // Assign
-    /// <summary> = </summary>
-    Assign,
-    // BinaryAssign
-    /// <summary> &= </summary>
-    AndEquals,
-    /// <summary> |= </summary>
-    OrEquals,
-    /// <summary> ^= </summary>
-    XorEquals,
-    /// <summary> ~= </summary>
-    InvertEquals,
-    // MathmaticalAssign
-    /// <summary> += </summary>
-    PlusEquals,
-    /// <summary> -= </summary>
-    MinusEquals,
-    /// <summary> *= </summary>
-    MultiplicationEquals,
-    /// <summary> **= </summary>
-    PowerEquals,
-    /// <summary> /= </summary>
-    DivisionEquals,
-    /// <summary> &= </summary>
-    ModuloEquals,
-    // BinaryOperator
-    /// <summary> ~ </summary>
-    Invert,
-    /// <summary> ^ </summary>
-    Xor,
-    /// <summary> | </summary>
-    Or,
-    /// <summary> &#38; </summary>
-    And,
-    // MathmaticalOperator
-    /// <summary> + </summary>
-    Plus,
-    /// <summary> - </summary>
-    Minus,
-    /// <summary> * </summary>
-    Multiplication,
-    /// <summary> ** </summary>
-    Power,
-    /// <summary> / </summary>
-    Division,
-    /// <summary> % </summary>
-    Modulo,
-    // Symbols
-    /// <summary> . </summary>
-    Dot,
-    /// <summary> , </summary>
-    Comma,
-    /// <summary> ' </summary>
-    SingleQuotationMark,
-    /// <summary> " </summary>
-    DoubleQuotationMark,
-    /// <summary> : </summary>
-    Colon,
-    /// <summary> ; </summary>
-    Semicolon,
-    /// <summary> ! </summary>
-    ExclamationMark,
-    /// <summary> ( </summary>
-    OpenParenthesis,
-    /// <summary> ) </summary>
-    CloseParenthesis,
-    /// <summary> [ </summary>
-    OpenBrackets,
-    /// <summary> ] </summary>
-    CloseBrackets,
-    /// <summary> { </summary>
-    OpenBraces,
-    /// <summary> } </summary>
-    CloseBraces,
-    /// <summary> [0-9]+ </summary>
-    Numbers,
-    /// <summary> //[^$]* </summary>
-    SingleLineComment,
-    /// <summary> /* </summary>
-    InlineCommentStart,
-    /// <summary> */ </summary>
-    InlineCommentEnd,
-
-    Unknown = -1
-}
-
-[DebuggerDisplay("Type = {Type}")]
-internal readonly struct LexerToken
-{
-    public readonly LexerTokenType Type;
-    public readonly int Start;
-    public readonly int End;
-
-    public LexerToken(LexerTokenType type, int start, int end)
-    {
-        Type = type;
-        Start = start;
-        End = end;
-    }
-}
-
-
-internal class LexerLevel2
-{
-    private string _src;
-
-    private Queue<LexerNode> _level1Queue;
-    private Queue<LexerToken> _level2Queue;
-
-    public LexerLevel2(
-        string src,
-        ref Queue<LexerNode> level1LexerQueue,
-        ref Queue<LexerToken> level2LexerQueue)
-    {
-        _src = src;
-
-        _level1Queue = level1LexerQueue;
-        _level2Queue = level2LexerQueue;
-    }
-
-
-    public void Analyse()
+    public static void Analyse(in ReadOnlySpan<char> src, Queue<LexerNode> level1Queue, Queue<LexerToken> level2Queue)
     {
         int end;
         LexerTokenType type;
 
-        ReadOnlySpan<char> src = _src.ToCharArray();
-
-        while (_level1Queue.Count > 0)
+        while (level1Queue.Count > 0)
         {
             // TODO: out params and if's
-            LexerNode node = GetNextLvl1Node();
+            LexerNode node = GetNextLvl1Node(level1Queue);
             switch (node.Type)
             {
-                case LexerNodeType.Space:
-                    if (IsSpace(src, node.Start, out end, out type))
+                case LexerNodeType.Empty:
+                    if (IsSpace(in src, node.Start, out end, out type))
                     {
-                        AddLevel2Token(node.Start, node.End, type);
+                        if(end != node.End) // \r\n
+                        {
+                            // get \n of \r\n
+                            node = GetNextLvl1Node(level1Queue);
+                        }
+
+                        AddLevel2Token(level2Queue, node.Type, node.Start, end, type);
                     }
                     else
                     {
-                        AddLevel2Token(node.Start, node.End, Unknown);
+                        AddLevel2Token(level2Queue, node.Type, node.Start, node.End, Unknown);
                     }
                     break;
                 case LexerNodeType.Word:
-                    if (IsKeyword(src, node.Start, out end, out type) && node.End == end)
+                    if (IsKeyword(in src, node.Start, out end, out type) && node.End == end)
                     {
-                        AddLevel2Token(node.Start, node.End, type);
+                        AddLevel2Token(level2Queue, node.Type, node.Start, node.End, type);
                     }
                     else
                     {
-                        AddLevel2Token(node.Start, node.End, Unknown);
+                        AddLevel2Token(level2Queue, node.Type, node.Start, node.End, Unknown);
                     }
                     break;
                 case LexerNodeType.Number:
-                    AddLevel2Token(node.Start, node.End, Numbers);
+                    AddLevel2Token(level2Queue, node.Type, node.Start, node.End, Numbers);
                     break;
                 case LexerNodeType.Symbol:
-                    if (IsSymbol(src, node.Start, out end, out type))
+                    if (IsSymbol(in src, node.Start, out end, out type))
                     {
                         if (end > node.End)
                         {
@@ -273,17 +54,17 @@ internal class LexerLevel2
                             int delta = end - node.Start;
                             while (delta > 0)
                             {
-                                GetNextLvl1Node();
+                                GetNextLvl1Node(level1Queue);
                                 delta--;
                             }
                             // end skip
                         }
 
-                        AddLevel2Token(node.Start, end, type);
+                        AddLevel2Token(level2Queue, node.Type, node.Start, end, type);
                     }
                     else
                     {
-                        AddLevel2Token(node.Start, node.End, Unknown);
+                        AddLevel2Token(level2Queue, node.Type, node.Start, node.End, Unknown);
                     }
                     break;
                 default:
@@ -292,57 +73,58 @@ internal class LexerLevel2
         }
     }
 
-    private LexerNode GetNextLvl1Node()
+    private static LexerNode GetNextLvl1Node(Queue<LexerNode> level1Queue)
     {
-        return _level1Queue.Dequeue();
+        return level1Queue.Dequeue();
     }
 
-    private void AddLevel2Token(int start, int end, LexerTokenType type)
+    private static void AddLevel2Token(Queue<LexerToken> level2Queue, LexerNodeType kind, int start, int end, LexerTokenType type)
     {
-        _level2Queue.Enqueue(new LexerToken(type, start, end));
+        level2Queue.Enqueue(new LexerToken(kind, type, start, end));
     }
 
-    public static bool IsKeyword(ReadOnlySpan<char> src, int i, out int end, out LexerTokenType type)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool IsKeyword(in ReadOnlySpan<char> src, int i, out int end, out LexerTokenType type)
     {
         // IDEE: a = 0, b = 1 => array of func
         switch (src[i])
         {
             case 'a': // asm
-                return IsAsm(src, i, out end, out type);
+                return IsAsm(in src, i, out end, out type);
             case 'b': // byte, bool
-                return IsByteOrBool(src, i, out end, out type);
+                return IsByteOrBool(in src, i, out end, out type);
             case 'c': // class, char
-                return IsClassOrCharOrConst(src, i, out end, out type);
+                return IsClassOrCharOrConst(in src, i, out end, out type);
             case 'd': //  do...while, double
-                return IsDoOrDouble(src, i, out end, out type);
+                return IsDoOrDouble(in src, i, out end, out type);
             case 'e': // else, enum
-                return IsElseOrEnum(src, i, out end, out type);
+                return IsElseOrEnum(in src, i, out end, out type);
             case 'f': // false, for, foreach, float
-                return IsFalseOrForOrForeachOrFloat(src, i, out end, out type);
+                return IsFalseOrForOrForeachOrFloat(in src, i, out end, out type);
             case 'g': // get
-                return IsGet(src, i, out end, out type);
+                return IsGet(in src, i, out end, out type);
             case 'i': // interface, int, if
-                return IsInterfaceOrIntOrIf(src, i, out end, out type);
+                return IsInterfaceOrIntOrIf(in src, i, out end, out type);
             case 'l': // long
-                return IsLong(src, i, out end, out type);
+                return IsLong(in src, i, out end, out type);
             case 'n': // namespace null, 
-                return IsNamespaceOrNull(src, i, out end, out type);
+                return IsNamespaceOrNull(in src, i, out end, out type);
             case 'p': // public, private 
-                return IsPublicOrPrivate(src, i, out end, out type);
+                return IsPublicOrPrivate(in src, i, out end, out type);
             case 'r': // return
-                return IsReturn(src, i, out end, out type);
+                return IsReturn(in src, i, out end, out type);
             case 's': // struct, sbyte, short, stackalloc, static
-                return IsSetOrStructOrShortOrStackallocOrStaticOrSByte(src, i, out end, out type);
+                return IsSetOrStructOrShortOrStackallocOrStaticOrSByte(in src, i, out end, out type);
             case 't': // true, this
-                return IsTrueOrThis(src, i, out end, out type);
+                return IsTrueOrThis(in src, i, out end, out type);
             case 'u': // ushort, uint, ulong, using [union]
-                return IsUsingOrUShortOrUIntOrULong(src, i, out end, out type);
+                return IsUsingOrUShortOrUIntOrULong(in src, i, out end, out type);
             case 'v': // var, void
-                return IsVarOrVoid(src, i, out end, out type);
+                return IsVarOrVoid(in src, i, out end, out type);
             case 'w': // while
-                return IsWhile(src, i, out end, out type);
+                return IsWhile(in src, i, out end, out type);
             case '#': // #define, #if, #IfEnd
-                return IsPragma(src, i, out end, out type);
+                return IsPragma(in src, i, out end, out type);
             default:
                 end = 0;
                 type = Unknown;
@@ -350,7 +132,8 @@ internal class LexerLevel2
         }
     }
 
-    private static bool IsAsm(ReadOnlySpan<char> src, int i, out int end, out LexerTokenType type)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool IsAsm(in ReadOnlySpan<char> src, int i, out int end, out LexerTokenType type)
     {
         i++;
         if (src[i] is 's' && src[i + 1] is 'm')
@@ -364,7 +147,8 @@ internal class LexerLevel2
         type = Unknown;
         return false;
     }
-    private static bool IsByteOrBool(ReadOnlySpan<char> src, int i, out int end, out LexerTokenType type)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool IsByteOrBool(in ReadOnlySpan<char> src, int i, out int end, out LexerTokenType type)
     {
         i++;
         switch (src[i])
@@ -391,7 +175,8 @@ internal class LexerLevel2
         type = Unknown;
         return false;
     }
-    private static bool IsClassOrCharOrConst(ReadOnlySpan<char> src, int i, out int end, out LexerTokenType type)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool IsClassOrCharOrConst(in ReadOnlySpan<char> src, int i, out int end, out LexerTokenType type)
     {
         i++;
         switch (src[i])
@@ -426,7 +211,8 @@ internal class LexerLevel2
         type = Unknown;
         return false;
     }
-    private static bool IsDoOrDouble(ReadOnlySpan<char> src, int i, out int end, out LexerTokenType type)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool IsDoOrDouble(in ReadOnlySpan<char> src, int i, out int end, out LexerTokenType type)
     {
         i++;
         if (src[i] is 'o') // do
@@ -446,7 +232,8 @@ internal class LexerLevel2
         type = Unknown;
         return false;
     }
-    private static bool IsElseOrEnum(ReadOnlySpan<char> src, int i, out int end, out LexerTokenType type)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool IsElseOrEnum(in ReadOnlySpan<char> src, int i, out int end, out LexerTokenType type)
     {
         i++;
         switch (src[i])
@@ -473,7 +260,8 @@ internal class LexerLevel2
         type = Unknown;
         return false;
     }
-    private static bool IsFalseOrForOrForeachOrFloat(ReadOnlySpan<char> src, int i, out int end, out LexerTokenType type)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool IsFalseOrForOrForeachOrFloat(in ReadOnlySpan<char> src, int i, out int end, out LexerTokenType type)
     {
         i++;
         switch (src[i])
@@ -516,7 +304,8 @@ internal class LexerLevel2
         type = Unknown;
         return false;
     }
-    private static bool IsGet(ReadOnlySpan<char> src, int i, out int end, out LexerTokenType type)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool IsGet(in ReadOnlySpan<char> src, int i, out int end, out LexerTokenType type)
     {
         i++;
         if (src[i] is 'e' && src[i + 1] is 't') // get
@@ -530,7 +319,8 @@ internal class LexerLevel2
         type = Unknown;
         return false;
     }
-    private static bool IsInterfaceOrIntOrIf(ReadOnlySpan<char> src, int i, out int end, out LexerTokenType type)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool IsInterfaceOrIntOrIf(in ReadOnlySpan<char> src, int i, out int end, out LexerTokenType type)
     {
         i++;
         switch (src[i])
@@ -565,7 +355,8 @@ internal class LexerLevel2
         type = Unknown;
         return false;
     }
-    private static bool IsLong(ReadOnlySpan<char> src, int i, out int end, out LexerTokenType type)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool IsLong(in ReadOnlySpan<char> src, int i, out int end, out LexerTokenType type)
     {
         i++;
         if (src[i] is 'o' && src[i + 1] is 'n' && src[i + 2] is 'g')
@@ -579,7 +370,8 @@ internal class LexerLevel2
         type = Unknown;
         return false;
     }
-    private static bool IsNamespaceOrNull(ReadOnlySpan<char> src, int i, out int end, out LexerTokenType type)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool IsNamespaceOrNull(in ReadOnlySpan<char> src, int i, out int end, out LexerTokenType type)
     {
         i++;
         switch (src[i])
@@ -607,7 +399,8 @@ internal class LexerLevel2
         type = Unknown;
         return false;
     }
-    private static bool IsPublicOrPrivate(ReadOnlySpan<char> src, int i, out int end, out LexerTokenType type)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool IsPublicOrPrivate(in ReadOnlySpan<char> src, int i, out int end, out LexerTokenType type)
     {
         i++;
         switch (src[i])
@@ -634,7 +427,8 @@ internal class LexerLevel2
         type = Unknown;
         return false;
     }
-    private static bool IsReturn(ReadOnlySpan<char> src, int i, out int end, out LexerTokenType type)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool IsReturn(in ReadOnlySpan<char> src, int i, out int end, out LexerTokenType type)
     {
         i++;
         if (src[i] is 'e' && src[i + 1] is 't' && src[i + 2] is 'u' && src[i + 3] is 'r' && src[i + 4] is 'n') // return
@@ -648,7 +442,8 @@ internal class LexerLevel2
         type = Unknown;
         return false;
     }
-    private static bool IsSetOrStructOrShortOrStackallocOrStaticOrSByte(ReadOnlySpan<char> src, int i, out int end, out LexerTokenType type)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool IsSetOrStructOrShortOrStackallocOrStaticOrSByte(in ReadOnlySpan<char> src, int i, out int end, out LexerTokenType type)
     {
         i++;
         switch (src[i])
@@ -718,7 +513,8 @@ internal class LexerLevel2
         type = Unknown;
         return false;
     }
-    private static bool IsTrueOrThis(ReadOnlySpan<char> src, int i, out int end, out LexerTokenType type)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool IsTrueOrThis(in ReadOnlySpan<char> src, int i, out int end, out LexerTokenType type)
     {
         i++;
         switch (src[i])
@@ -745,7 +541,8 @@ internal class LexerLevel2
         type = Unknown;
         return false;
     }
-    private static bool IsUsingOrUShortOrUIntOrULong(ReadOnlySpan<char> src, int i, out int end, out LexerTokenType type)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool IsUsingOrUShortOrUIntOrULong(in ReadOnlySpan<char> src, int i, out int end, out LexerTokenType type)
     {
         i++;
         switch (src[i])
@@ -793,7 +590,8 @@ internal class LexerLevel2
         type = Unknown;
         return false;
     }
-    private static bool IsVarOrVoid(ReadOnlySpan<char> src, int i, out int end, out LexerTokenType type)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool IsVarOrVoid(in ReadOnlySpan<char> src, int i, out int end, out LexerTokenType type)
     {
         i++;
         switch (src[i])
@@ -820,7 +618,8 @@ internal class LexerLevel2
         type = Unknown;
         return false;
     }
-    private static bool IsWhile(ReadOnlySpan<char> src, int i, out int end, out LexerTokenType type)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool IsWhile(in ReadOnlySpan<char> src, int i, out int end, out LexerTokenType type)
     {
         i++;
         if (src[i] is 'h' && src[i + 1] is 'i' && src[i + 2] is 'l' && src[i + 3] is 'e') // while
@@ -835,7 +634,8 @@ internal class LexerLevel2
         return false;
     }
 
-    private static bool IsPragma(ReadOnlySpan<char> src, int i, out int end, out LexerTokenType type)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool IsPragma(in ReadOnlySpan<char> src, int i, out int end, out LexerTokenType type)
     {
         // #define, #if, #endif
         i++;
@@ -872,13 +672,14 @@ internal class LexerLevel2
         return false;
     }
 
-    private static bool IsSpace(ReadOnlySpan<char> src, int i, out int end, out LexerTokenType type)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool IsSpace(in ReadOnlySpan<char> src, int i, out int end, out LexerTokenType type)
     {
         switch (src[i])
         {
-            case ' ': // space
+            case ' ': // whitespace
                 end = i + 1;
-                type = Space;
+                type = Whitespace;
                 return true;
             case '\t': // tab
                 end = i + 1;
@@ -902,10 +703,8 @@ internal class LexerLevel2
         type = Unknown;
         return false;
     }
-
-
-
-    private static bool IsSymbol(ReadOnlySpan<char> src, int i, out int end, out LexerTokenType type)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool IsSymbol(in ReadOnlySpan<char> src, int i, out int end, out LexerTokenType type)
     {
         switch (src[i])
         {
@@ -964,10 +763,11 @@ internal class LexerLevel2
         }
 
         // if all false then end became 0 and type unknown
-        return IsAssignOperator(src, i, out end, out type)
-            || IsOperator(src, i, out end, out type);
+        return IsAssignOperator(in src, i, out end, out type)
+            || IsOperator(in src, i, out end, out type);
     }
-    private static bool IsAssignOperator(ReadOnlySpan<char> src, int i, out int end, out LexerTokenType type)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool IsAssignOperator(in ReadOnlySpan<char> src, int i, out int end, out LexerTokenType type)
     {
         switch (src[i + 1])
         {
@@ -1052,7 +852,8 @@ internal class LexerLevel2
         type = Unknown;
         return false;
     }
-    private static bool IsOperator(ReadOnlySpan<char> src, int i, out int end, out LexerTokenType type)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool IsOperator(in ReadOnlySpan<char> src, int i, out int end, out LexerTokenType type)
     {
         switch (src[i])
         {
@@ -1116,28 +917,6 @@ internal class LexerLevel2
                 end = i + 1;
                 type = Modulo;
                 return true;
-        }
-
-        end = 0;
-        type = Unknown;
-        return false;
-    }
-
-    // todo remove into the parser
-    private static bool IsIdentifier(ReadOnlySpan<char> src, int i, out int end, out LexerTokenType type)
-    {
-        // starts with [A-Za-z]
-        if (src[i] is '_' or (>= 'A' and <= 'Z') or (>= 'a' and <= 'z'))
-        {
-            i++;
-            // followed by [A-Za-z0-9_]*
-            while (i < src.Length && src[i] is '_' or (>= 'A' and <= 'Z') or (>= 'a' and <= 'z') or (>= '0' and <= '9'))
-            {
-                i++;
-            }
-            end = i;
-            type = Unknown;
-            return true;
         }
 
         end = 0;
