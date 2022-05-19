@@ -19,31 +19,31 @@ internal static class LexerLevel2
                 case LexerNodeType.Empty:
                     if (IsSpace(in src, node.Start, out end, out type))
                     {
-                        if(end != node.End) // \r\n
+                        if (end != node.End) // \r\n
                         {
                             // get \n of \r\n
                             node = GetNextLvl1Node(level1Queue);
                         }
 
-                        AddLevel2Token(level2Queue, node.Type, node.Start, end, type);
+                        AddLevel2Token(level2Queue, node.Start, end, type);
                     }
                     else
                     {
-                        AddLevel2Token(level2Queue, node.Type, node.Start, node.End, Unknown);
+                        AddLevel2Token(level2Queue, node.Start, node.End, Unknown);
                     }
                     break;
                 case LexerNodeType.Word:
                     if (IsKeyword(in src, node.Start, out end, out type) && node.End == end)
                     {
-                        AddLevel2Token(level2Queue, node.Type, node.Start, node.End, type);
+                        AddLevel2Token(level2Queue, node.Start, node.End, type);
                     }
                     else
                     {
-                        AddLevel2Token(level2Queue, node.Type, node.Start, node.End, Unknown);
+                        AddLevel2Token(level2Queue, node.Start, node.End, Unknown);
                     }
                     break;
                 case LexerNodeType.Number:
-                    AddLevel2Token(level2Queue, node.Type, node.Start, node.End, Numbers);
+                    AddLevel2Token(level2Queue, node.Start, node.End, Digits);
                     break;
                 case LexerNodeType.Symbol:
                     if (IsSymbol(in src, node.Start, out end, out type))
@@ -60,11 +60,11 @@ internal static class LexerLevel2
                             // end skip
                         }
 
-                        AddLevel2Token(level2Queue, node.Type, node.Start, end, type);
+                        AddLevel2Token(level2Queue, node.Start, end, type);
                     }
                     else
                     {
-                        AddLevel2Token(level2Queue, node.Type, node.Start, node.End, Unknown);
+                        AddLevel2Token(level2Queue, node.Start, node.End, Unknown);
                     }
                     break;
                 default:
@@ -78,9 +78,9 @@ internal static class LexerLevel2
         return level1Queue.Dequeue();
     }
 
-    private static void AddLevel2Token(Queue<LexerToken> level2Queue, LexerNodeType kind, int start, int end, LexerTokenType type)
+    private static void AddLevel2Token(Queue<LexerToken> level2Queue, int start, int end, LexerTokenType type)
     {
-        level2Queue.Enqueue(new LexerToken(kind, type, start, end));
+        level2Queue.Enqueue(new LexerToken(type, start, end));
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -103,8 +103,8 @@ internal static class LexerLevel2
                 return IsFalseOrForOrForeachOrFloat(in src, i, out end, out type);
             case 'g': // get
                 return IsGet(in src, i, out end, out type);
-            case 'i': // interface, int, if
-                return IsInterfaceOrIntOrIf(in src, i, out end, out type);
+            case 'i': // interface, internal, int, if, in
+                return IsInterfaceOrIntOrIfOrIn(in src, i, out end, out type);
             case 'l': // long
                 return IsLong(in src, i, out end, out type);
             case 'n': // namespace null, 
@@ -126,7 +126,7 @@ internal static class LexerLevel2
             case '#': // #define, #if, #IfEnd
                 return IsPragma(in src, i, out end, out type);
             default:
-                end = 0;
+                end = i;
                 type = Unknown;
                 return false;
         }
@@ -143,7 +143,7 @@ internal static class LexerLevel2
             return true;
         }
 
-        end = 0;
+        end = i;
         type = Unknown;
         return false;
     }
@@ -171,7 +171,7 @@ internal static class LexerLevel2
                 break;
         }
 
-        end = 0;
+        end = i;
         type = Unknown;
         return false;
     }
@@ -207,7 +207,7 @@ internal static class LexerLevel2
                 break;
         }
 
-        end = 0;
+        end = i;
         type = Unknown;
         return false;
     }
@@ -228,7 +228,7 @@ internal static class LexerLevel2
             return true;
         }
 
-        end = 0;
+        end = i;
         type = Unknown;
         return false;
     }
@@ -238,16 +238,16 @@ internal static class LexerLevel2
         i++;
         switch (src[i])
         {
-            case 'l':
-                if (src[i + 1] is 's' && src[i + 2] is 'e') // else
+            case 'l': // else
+                if (src[i + 1] is 's' && src[i + 2] is 'e') 
                 {
                     end = i + 3;
                     type = Else;
                     return true;
                 }
                 break;
-            case 'n':
-                if (src[i + 1] is 'u' && src[i + 2] is 'm') // enum
+            case 'n': // enum
+                if (src[i + 1] is 'u' && src[i + 2] is 'm') 
                 {
                     end = i + 3;
                     type = Enum;
@@ -256,7 +256,7 @@ internal static class LexerLevel2
                 break;
         }
 
-        end = 0;
+        end = i;
         type = Unknown;
         return false;
     }
@@ -277,7 +277,8 @@ internal static class LexerLevel2
             case 'o': // for or foreach
                 if (src[i + 1] is 'r')
                 {
-                    if (src[i + 2] is 'e' && src[i + 3] is 'a' && src[i + 4] is 'c' && src[i + 5] is 'h') // foreach
+                    // foreach
+                    if (src[i + 2] is 'e' && src[i + 3] is 'a' && src[i + 4] is 'c' && src[i + 5] is 'h') 
                     {
                         end = i + 6;
                         type = Foreach;
@@ -300,7 +301,7 @@ internal static class LexerLevel2
                 break;
         }
 
-        end = 0;
+        end = i;
         type = Unknown;
         return false;
     }
@@ -308,31 +309,44 @@ internal static class LexerLevel2
     private static bool IsGet(in ReadOnlySpan<char> src, int i, out int end, out LexerTokenType type)
     {
         i++;
-        if (src[i] is 'e' && src[i + 1] is 't') // get
+        // get
+        if (src[i] is 'e' && src[i + 1] is 't') 
         {
             end = i + 2;
             type = Get;
             return true;
         }
 
-        end = 0;
+        end = i;
         type = Unknown;
         return false;
     }
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static bool IsInterfaceOrIntOrIf(in ReadOnlySpan<char> src, int i, out int end, out LexerTokenType type)
+    private static bool IsInterfaceOrIntOrIfOrIn(in ReadOnlySpan<char> src, int i, out int end, out LexerTokenType type)
     {
         i++;
         switch (src[i])
         {
-            case 'n': // interface
+            case 'n': // interface or interface
                 if (src[i + 1] is 't')
                 {
-                    if (src[i + 2] is 'e' && src[i + 3] is 'r' && src[i + 4] is 'f' && src[i + 5] is 'a' && src[i + 6] is 'c' && src[i + 7] is 'e')
+                    if (src[i + 2] is 'e' && src[i + 3] is 'r')
                     {
-                        end = i + 8;
-                        type = Interface;
-                        return true;
+                        // Internal
+                        if (src[i + 4] is 'n' && src[i + 5] is 'a' && src[i + 6] is 'l')
+                        {
+                            end = i + 7;
+                            type = Internal;
+                            return true;
+                        }
+
+                        // Interface
+                        if (src[i + 4] is 'f' && src[i + 5] is 'a' && src[i + 6] is 'c' && src[i + 7] is 'e')
+                        {
+                            end = i + 8;
+                            type = Interface;
+                            return true;
+                        }
                     }
 
                     // int
@@ -340,7 +354,11 @@ internal static class LexerLevel2
                     type = Int;
                     return true;
                 }
-                break;
+
+                // in
+                end = i + 1;
+                type = In;
+                return true;
             case 'f': // if
                 if (src[i] is 'f')
                 {
@@ -351,7 +369,7 @@ internal static class LexerLevel2
                 break;
         }
 
-        end = 0;
+        end = i;
         type = Unknown;
         return false;
     }
@@ -359,6 +377,7 @@ internal static class LexerLevel2
     private static bool IsLong(in ReadOnlySpan<char> src, int i, out int end, out LexerTokenType type)
     {
         i++;
+        // long
         if (src[i] is 'o' && src[i + 1] is 'n' && src[i + 2] is 'g')
         {
             end = i + 3;
@@ -366,7 +385,7 @@ internal static class LexerLevel2
             return true;
         }
 
-        end = 0;
+        end = i;
         type = Unknown;
         return false;
     }
@@ -386,7 +405,7 @@ internal static class LexerLevel2
                 }
                 break;
             case 'u': // null
-                if (src[i + 1] is 'l' && src[i + 2] is 'l') // null
+                if (src[i + 1] is 'l' && src[i + 2] is 'l')
                 {
                     end = i + 3;
                     type = Null;
@@ -395,7 +414,7 @@ internal static class LexerLevel2
                 break;
         }
 
-        end = 0;
+        end = i;
         type = Unknown;
         return false;
     }
@@ -423,7 +442,7 @@ internal static class LexerLevel2
                 break;
         }
 
-        end = 0;
+        end = i;
         type = Unknown;
         return false;
     }
@@ -438,7 +457,7 @@ internal static class LexerLevel2
             return true;
         }
 
-        end = 0;
+        end = i;
         type = Unknown;
         return false;
     }
@@ -448,8 +467,8 @@ internal static class LexerLevel2
         i++;
         switch (src[i])
         {
-            case 'b': // Sbyte
-                if (src[i + 1] is 'y' && src[i + 2] is 't' && src[i + 3] is 'e') // Sbyte
+            case 'b': // sbyte
+                if (src[i + 1] is 'y' && src[i + 2] is 't' && src[i + 3] is 'e') // sbyte
                 {
                     end = i + 4;
                     type = SByte;
@@ -509,7 +528,7 @@ internal static class LexerLevel2
 
         }
 
-        end = 0;
+        end = i;
         type = Unknown;
         return false;
     }
@@ -537,7 +556,7 @@ internal static class LexerLevel2
                 break;
         }
 
-        end = 0;
+        end = i;
         type = Unknown;
         return false;
     }
@@ -586,7 +605,7 @@ internal static class LexerLevel2
                 break;
         }
 
-        end = 0;
+        end = i;
         type = Unknown;
         return false;
     }
@@ -605,7 +624,7 @@ internal static class LexerLevel2
                 }
                 break;
             case 'o': // void
-                if (src[i + 1] is 'i' && src[i + 2] is 't')
+                if (src[i + 1] is 'i' && src[i + 2] is 'd')
                 {
                     end = i + 3;
                     type = Void;
@@ -614,22 +633,22 @@ internal static class LexerLevel2
                 break;
         }
 
-        end = 0;
-        type = Unknown;
+        end = i;type = Unknown;
         return false;
     }
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool IsWhile(in ReadOnlySpan<char> src, int i, out int end, out LexerTokenType type)
     {
         i++;
-        if (src[i] is 'h' && src[i + 1] is 'i' && src[i + 2] is 'l' && src[i + 3] is 'e') // while
+        // while
+        if (src[i] is 'h' && src[i + 1] is 'i' && src[i + 2] is 'l' && src[i + 3] is 'e') 
         {
             end = i + 4;
             type = While;
             return true;
         }
 
-        end = 0;
+        end = i;
         type = Unknown;
         return false;
     }
@@ -667,7 +686,7 @@ internal static class LexerLevel2
                 break;
         }
 
-        end = 0;
+        end = i;
         type = Unknown;
         return false;
     }
@@ -692,14 +711,14 @@ internal static class LexerLevel2
                     type = Newline;
                     return true;
                 }
-                break;
+                throw new FormatException("Unknow char sequenz");
             case '\n': // new line
                 end = i + 1;
                 type = Newline;
                 return true;
         }
 
-        end = 0;
+        end = i;
         type = Unknown;
         return false;
     }
@@ -732,10 +751,6 @@ internal static class LexerLevel2
                 end = i + 1;
                 type = Semicolon;
                 return true;
-            case '!':
-                end = i + 1;
-                type = ExclamationMark;
-                return true;
             case '(':
                 end = i + 1;
                 type = OpenParenthesis;
@@ -760,167 +775,232 @@ internal static class LexerLevel2
                 end = i + 1;
                 type = CloseBraces;
                 return true;
-        }
-
-        // if all false then end became 0 and type unknown
-        return IsAssignOperator(in src, i, out end, out type)
-            || IsOperator(in src, i, out end, out type);
-    }
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static bool IsAssignOperator(in ReadOnlySpan<char> src, int i, out int end, out LexerTokenType type)
-    {
-        switch (src[i + 1])
-        {
-            case '=':
-                switch (src[i])
+            case '\\':
+                end = i + 1;
+                type = Slash;
+                return true;
+            /* AssignOperator */
+            case '&':
+                switch (src[i + 1])
                 {
-                    /// binary
-                    case '&':
+                    case '=':
                         end = i + 2;
                         type = AndEquals;
                         return true;
-                    case '|':
+                    case '&':
                         end = i + 2;
-                        type = OrEquals;
-                        return true;
-                    case '^':
-                        end = i + 2;
-                        type = XorEquals;
-                        return true;
-                    case '~':
-                        end = i + 2;
-                        type = InvertEquals;
-                        return true;
-                    /// mathmatical
-                    case '+':
-                        end = i + 2;
-                        type = PlusEquals;
-                        return true;
-                    case '-':
-                        end = i + 2;
-                        type = MinusEquals;
-                        return true;
-                    case '*':
-                        end = i + 2;
-                        type = MultiplicationEquals;
-                        return true;
-                    case '/':
-                        end = i + 2;
-                        type = DivisionEquals;
-                        return true;
-                    case '%':
-                        end = i + 2;
-                        type = ModuloEquals;
-                        return true;
-                    /// compare
-                    case '<':
-                        end = i + 2;
-                        type = LessThen;
-                        return true;
-                    case '>':
-                        end = i + 2;
-                        type = GreaterThen;
-                        return true;
-                    case '=':
-                        end = i + 2;
-                        type = EqualsThen;
-                        return true;
-                    case '!':
-                        end = i + 2;
-                        type = NotEqualsThen;
+                        type = AndAlso;
                         return true;
                 }
-                break;
-            case '*':
-                if (src[i] is '*' && src[i + 2] is '=')
-                {
-                    end = i + 3;
-                    type = PowerEquals;
-                    return true;
-                }
-                break;
-        }
-
-        if (src[i] is '=')
-        {
-            end = i + 1;
-            type = Assign;
-            return true;
-        }
-
-        end = 0;
-        type = Unknown;
-        return false;
-    }
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static bool IsOperator(in ReadOnlySpan<char> src, int i, out int end, out LexerTokenType type)
-    {
-        switch (src[i])
-        {
-            // binary
-            case '~':
-                end = i + 1;
-                type = Invert;
-                return true;
-            case '^':
-                end = i + 1;
-                type = Xor;
-                return true;
-            case '|':
-                end = i + 1;
-                type = Or;
-                return true;
-            case '&':
                 end = i + 1;
                 type = And;
                 return true;
-            // math
+            case '|':
+                switch (src[i + 1])
+                {
+                    case '=':
+                        end = i + 2;
+                        type = OrEquals;
+                        return true;
+                    case '&':
+                        end = i + 2;
+                        type = OrElse;
+                        return true;
+                }
+                end = i + 1;
+                type = Or;
+                return true;
+            case '^':
+                if (src[i + 1] is '=')
+                {
+                    end = i + 2;
+                    type = OrEquals;
+                    return true;
+                }
+                end = i + 1;
+                type = Xor;
+                return true;
+            case '~':
+                if (src[i + 1] is '=')
+                {
+                    end = i + 2;
+                    type = InvertEquals;
+                    return true;
+                }
+                end = i + 1;
+                type = Invert;
+                return true;
+            /// mathmatical
             case '+':
+                switch (src[i + 1])
+                {
+                    case '=':
+                        end = i + 2;
+                        type = PlusEquals;
+                        return true;
+                    case '+':
+                        end = i + 2;
+                        type = AtomicIncreas;
+                        return true;
+                }
+
                 end = i + 1;
                 type = Plus;
                 return true;
             case '-':
+                switch (src[i + 1])
+                {
+                    case '=':
+                        end = i + 2;
+                        type = MinusEquals;
+                        return true;
+                    case '+':
+                        end = i + 2;
+                        type = AtomicDecrease;
+                        return true;
+                }
+
                 end = i + 1;
                 type = Minus;
                 return true;
             case '*':
+                // * or *= or ** or **= 
                 switch (src[i + 1])
                 {
-                    case '*': // power 
-                        end = i + 2;
-                        type = Power;
-                        return true;
                     case '/': // comment
                         end = i + 2;
                         type = InlineCommentEnd;
                         return true;
+                    case '=': // *)
+                        end = i + 2;
+                        type = MultiplicationEquals;
+                        return true;
+                    case '*':
+                        if (src[i + 2] is '=')
+                        {
+                            end = i + 3;
+                            type = PowerEquals;
+                            return true;
+                        }
+
+                        end = i + 2;
+                        type = Power;
+                        return true;
                 }
+
                 end = i + 1;
                 type = Multiplication;
                 return true;
             case '/':
+                // /= or /* or / or //
                 switch (src[i + 1])
                 {
-                    case '*': // inline comment
-                        end = i + 2;
+                    case '=': // /=
+                        end = i + 1;
+                        type = DivisionEquals;
+                        return true;
+                    case '*': // /*
+                        end = i + 1;
                         type = InlineCommentStart;
                         return true;
-                    case '/': // comment
-                        end = i + 2;
+                    case '/': // //
+                        end = i + 1;
                         type = SingleLineComment;
                         return true;
                 }
-                end = i + 1;
+                end = i + 1; // /
                 type = Division;
                 return true;
             case '%':
+                if (src[i + 1] is '=')
+                {
+                    end = i + 1;
+                    type = ModuloEquals;
+                    return true;
+                }
+
                 end = i + 1;
                 type = Modulo;
                 return true;
+            /// compare
+            case '<':
+                // < or <= or  << or <<= 
+                switch (src[i + 1])
+                {
+                    case '=': //  <=
+                        end = i + 1;
+                        type = LessThen;
+                        return true;
+                    case '<': //  <<
+                        if (src[i + 2] is '=') // <<=
+                        {
+
+                            end = i + 3;
+                            type = LeftShiftEquals;
+                            return true;
+                        }
+
+                        end = i + 2;
+                        type = LeftShift;
+                        return true;
+                }
+                // <
+                end = i + 1;
+                type = Less;
+                return true;
+            case '>':
+                switch (src[i + 1])
+                {
+                    case '=': // >=
+                        end = i + 1;
+                        type = GreaterThen;
+                        return true;
+                    case '>': // >> or >>=
+                        // >>=
+                        if (src[i + 2] is '=')
+                        {
+                            end = i + 3;
+                            type = RightShiftEquals;
+                            return true;
+                        }
+                        
+                        // >> 
+                        end = i + 2;
+                        type = RightShift;
+                        return true;
+                }
+
+                end = i + 1;
+                type = Greater;
+                return true;
+            case '=':
+                // ==
+                if (src[i + 1] is '=')
+                {
+                    end = i + 1;
+                    type = EqualsThen;
+                    return true;
+                }
+
+                end = i + 1;
+                type = Assign;
+                return true;
+            case '!':
+                // !=
+                if (src[i + 1] is '=')
+                {
+                    end = i + 2;
+                    type = NotEqualsThen;
+                    return true;
+                }
+
+                end = i + 1;
+                type = Not;
+                return true;
         }
 
-        end = 0;
+        end = i;
         type = Unknown;
-        return false;
+        return true;
     }
 }

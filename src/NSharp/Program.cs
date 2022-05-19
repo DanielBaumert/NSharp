@@ -1,6 +1,9 @@
 ﻿using NSharp;
 using NSharp.Lex;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
+
+[assembly: InternalsVisibleTo("NSharp.Benchmark")]
 
 Console.WriteLine("Hello, World!");
 
