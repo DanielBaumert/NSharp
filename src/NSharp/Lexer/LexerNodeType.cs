@@ -5,5 +5,6 @@ internal enum LexerNodeType
     Empty, 
     Word,
     Number,
-    Symbol
+    Symbol,
+    Unknown
 }

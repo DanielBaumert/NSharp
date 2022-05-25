@@ -1,10 +1,12 @@
 ﻿namespace NSharp.Lex;
 
-internal enum LexerTokenType
+public enum LexerTokenType
 {
     // keyword
     /// <summary> asm </summary>
     ASM,
+    /// <summary> alias </summary>
+    Alias,
     /// <summary> byte </summary>
     Byte,
     /// <summary> bool </summary>
@@ -33,12 +35,18 @@ internal enum LexerTokenType
     Float,
     /// <summary> get </summary>
     Get,
+    /// <summary> import </summary>
+    Import,
     /// <summary> interface </summary>
     Interface,
+    /// <summary> internal </summary>
+    Internal,
     /// <summary> int </summary>
     Int,
     /// <summary> if </summary>
     If,
+    /// <summary> in </summary>
+    In,
     /// <summary> long </summary>
     Long,
     /// <summary> namespace </summary>
@@ -81,6 +89,8 @@ internal enum LexerTokenType
     Void,
     /// <summary> while </summary>
     While,
+    /// <summary> # </summary>
+    Hash,
     /// <summary> #define </summary>
     PragmaDefine,
     /// <summary> #if </summary>
@@ -89,6 +99,12 @@ internal enum LexerTokenType
     PragmaEndIf,
     /// <summary> [_A-Za-z][_A-Za-z0-9]* </summary>
     Identifier,
+    /// <summary> 0x[0-9A-F]+ </summary>
+    HexNumber,
+    /// <summary> 0b[0-1]+ </summary>
+    BinaryNumber,
+    /// <summary> [0-9]+ </summary>
+    Digits,
     /// <summary> \s </summary>
     Whitespace,
     /// <summary> \t </summary>
@@ -96,19 +112,27 @@ internal enum LexerTokenType
     /// <summary> \n or \r\n </summary>
     Newline,
     // IsCompareOperator
+    /// <summary> &lt; </summary>
+    Less,
     /// <summary> &lt;= </summary>
     LessThen,
+    /// <summary> > </summary>
+    Greater,
     /// <summary> >= </summary>
     GreaterThen,
     /// <summary> == </summary>
     EqualsThen,
     /// <summary> != </summary>
     NotEqualsThen,
+    /// <summary> &#38;&#38; </summary>
+    AndAlso,
+    /// <summary> || </summary>
+    OrElse,
     // Assign
     /// <summary> = </summary>
     Assign,
     // BinaryAssign
-    /// <summary> &= </summary>
+    /// <summary> &#38;= </summary>
     AndEquals,
     /// <summary> |= </summary>
     OrEquals,
@@ -116,6 +140,10 @@ internal enum LexerTokenType
     XorEquals,
     /// <summary> ~= </summary>
     InvertEquals,
+    /// <summary> &lt;&lt;= </summary>
+    LeftShiftEquals,
+    /// <summary> >>= </summary>
+    RightShiftEquals,
     // MathmaticalAssign
     /// <summary> += </summary>
     PlusEquals,
@@ -127,7 +155,7 @@ internal enum LexerTokenType
     PowerEquals,
     /// <summary> /= </summary>
     DivisionEquals,
-    /// <summary> &= </summary>
+    /// <summary> %= </summary>
     ModuloEquals,
     // BinaryOperator
     /// <summary> ~ </summary>
@@ -138,11 +166,19 @@ internal enum LexerTokenType
     Or,
     /// <summary> &#38; </summary>
     And,
+    /// <summary> &lt;&lt; </summary>
+    LeftShift,
+    /// <summary> >> </summary>
+    RightShift,
     // MathmaticalOperator
     /// <summary> + </summary>
     Plus,
+    /// <summary> ++ </summary>
+    AtomicIncreas,
     /// <summary> - </summary>
     Minus,
+    /// <summary> -- </summary>
+    AtomicDecrease,
     /// <summary> * </summary>
     Multiplication,
     /// <summary> ** </summary>
@@ -165,7 +201,7 @@ internal enum LexerTokenType
     /// <summary> ; </summary>
     Semicolon,
     /// <summary> ! </summary>
-    ExclamationMark,
+    Not,
     /// <summary> ( </summary>
     OpenParenthesis,
     /// <summary> ) </summary>
@@ -178,16 +214,16 @@ internal enum LexerTokenType
     OpenBraces,
     /// <summary> } </summary>
     CloseBraces,
-    /// <summary> [0-9]+ </summary>
-    Numbers,
-    /// <summary> //[^$]* </summary>
-    SingleLineComment,
     /// <summary> /* </summary>
     InlineCommentStart,
     /// <summary> /* ... */ </summary>
     InlineComment,
     /// <summary> */ </summary>
     InlineCommentEnd,
+    /// <summary> //[^$]* </summary>
+    SingleLineComment,
+    /// <summary> \ </summary>
+    Slash,
 
     Unknown = -1
 }

@@ -1,18 +1,15 @@
-﻿using NSharp;
-using NSharp.Lex;
-using System.Diagnostics;
+﻿using NSharp.Lex;
+using NSharp.Lexer.Level;
+using System.Runtime.CompilerServices;
+
+[assembly: InternalsVisibleTo("NSharp.Benchmark")]
 
 Console.WriteLine("Hello, World!");
 
-string example = File.ReadAllText("./../.../../../../LexerLevel2.cs");
+string example = File.ReadAllText(@"Example.ns");
 
-Stopwatch sw = new Stopwatch();
-sw.Start();
+Queue<LexerToken> queue = Lexer.Analyse(example);
 
-Lexer.Analyse(example);
-
-
-sw.Stop();
-Console.WriteLine(sw.Elapsed.TotalMilliseconds);
+Console.WriteLine("Sleep");
 
 ; // break me 
