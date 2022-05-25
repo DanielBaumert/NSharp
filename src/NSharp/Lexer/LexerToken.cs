@@ -3,7 +3,7 @@
 using System.Diagnostics;
 
 [DebuggerDisplay("Type = {Type} [{Start}..{End})")]
-internal readonly struct LexerToken
+public readonly struct LexerToken
 {
     public readonly LexerTokenType Type;
     public readonly int Start;

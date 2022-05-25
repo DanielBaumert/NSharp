@@ -1,10 +1,12 @@
 ﻿namespace NSharp.Lex;
 
-internal enum LexerTokenType
+public enum LexerTokenType
 {
     // keyword
     /// <summary> asm </summary>
     ASM,
+    /// <summary> alias </summary>
+    Alias,
     /// <summary> byte </summary>
     Byte,
     /// <summary> bool </summary>
@@ -33,6 +35,8 @@ internal enum LexerTokenType
     Float,
     /// <summary> get </summary>
     Get,
+    /// <summary> import </summary>
+    Import,
     /// <summary> interface </summary>
     Interface,
     /// <summary> internal </summary>
@@ -85,6 +89,8 @@ internal enum LexerTokenType
     Void,
     /// <summary> while </summary>
     While,
+    /// <summary> # </summary>
+    Hash,
     /// <summary> #define </summary>
     PragmaDefine,
     /// <summary> #if </summary>
